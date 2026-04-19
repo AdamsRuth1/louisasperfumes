@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+  >
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="description" content="Louisa's Perfumes offers signature scents, fragrance recommendations, and easy WhatsApp ordering.">
+  <title>Louisa's Perfumes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="status-banner hidden" id="status-banner" aria-live="polite"></div>
+
+  <header class="site-header">
+    <div class="brand-lockup brand-lockup-rich">
+      <img src="/logo.jpeg" alt="Louisa's Perfumes logo" class="brand-logo">
+      <div>
+        <p class="eyebrow">Signature Fragrance House</p>
+        <a href="#hero" class="brand-name" aria-label="Louisa's Perfumes home">Louisa's Perfumes</a>
+      </div>
+    </div>
+
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="#collection">Collection</a>
+      <a href="#story">Brand</a>
+      <a href="#contact">Contact</a>
+      <button
+        class="theme-toggle"
+        type="button"
+        id="theme-toggle"
+        aria-label="Toggle between dark and light theme"
+        aria-pressed="false"
+      >
+        <span>Black</span>
+        <span class="toggle-indicator" aria-hidden="true"></span>
+        <span>White</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" id="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Crafted for allure</p>
+        <h1>Find the fragrance that matches your mood, style, and budget.</h1>
+        <p class="hero-text">
+          Louisa's Perfumes brings together elegant, bold, fresh, and unforgettable scents for every personality.
+          Explore what is available, search by notes or brand, and place your order instantly on WhatsApp.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#collection">Shop Collection</a>
+          <button class="button button-secondary" type="button" id="hero-chat-trigger">Ask the Perfume Assistant</button>
+        </div>
+        <ul class="hero-highlights" aria-label="Brand highlights">
+          <li>Authentic fragrance collection</li>
+          <li>Budget-based perfume matching</li>
+          <li>Easy WhatsApp ordering</li>
+        </ul>
+      </div>
+
+      <div class="hero-card hero-card-logo" aria-hidden="true">
+        <div class="mist mist-one"></div>
+        <div class="mist mist-two"></div>
+        <img src="/logo.jpeg" alt="" class="hero-logo">
+        <div class="bottle-card">
+          <p>House Signature</p>
+          <h2>Louisa's</h2>
+          <span>Luxury scents / soft florals / bold woods</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="search-bar-section" aria-label="Search perfumes">
+      <div class="search-shell">
+        <label for="search-input" class="search-label">Search by name, manufacturer, or notes</label>
+        <div class="search-field">
+          <button type="button" class="search-button" id="search-button" aria-label="Search perfumes">
+            Search
+          </button>
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Try: vanilla, Lattafa, rose..."
+            autocomplete="off"
+          >
+        </div>
+        <p class="search-hint" id="results-summary">Showing all available perfumes.</p>
+      </div>
+    </section>
+
+    <section class="collection-section" id="collection">
+      <div class="section-heading">
+        <p class="eyebrow">Available now</p>
+        <h2>Shop the Collection</h2>
+        <p>Search perfumes by scent notes, manufacturer, or product name and order directly on WhatsApp.</p>
+      </div>
+
+      <div class="filter-pills" aria-label="Popular note filters">
+        <button type="button" class="pill is-active" data-filter="all">All</button>
+        <button type="button" class="pill" data-filter="fresh">Fresh</button>
+        <button type="button" class="pill" data-filter="sweet">Sweet</button>
+        <button type="button" class="pill" data-filter="woody">Woody</button>
+        <button type="button" class="pill" data-filter="floral">Floral</button>
+      </div>
+
+      <div class="product-grid" id="product-grid" aria-live="polite"></div>
+      <template id="product-card-template">
+        <article class="product-card">
+          <div class="product-image-wrap">
+            <img class="product-image" alt="">
+            <span class="stock-badge"></span>
+          </div>
+          <div class="product-content">
+            <div class="product-topline">
+              <p class="manufacturer"></p>
+              <p class="ml"></p>
+            </div>
+            <h3 class="product-name"></h3>
+            <p class="product-description"></p>
+            <p class="product-notes"></p>
+            <div class="product-footer">
+              <p class="price"></p>
+              <a class="button button-primary order-link" target="_blank" rel="noopener noreferrer">Order Now</a>
+            </div>
+          </div>
+        </article>
+      </template>
+    </section>
+
+    <section class="story-section" id="story">
+      <div class="section-heading">
+        <p class="eyebrow">About the brand</p>
+        <h2>Louisa's Perfumes is made for people who want to smell intentional.</h2>
+      </div>
+      <div class="story-layout">
+        <div class="story-copy">
+          <p>
+            We curate perfumes that feel expressive, memorable, and wearable across different lifestyles. From airy
+            daytime scents to rich evening statements, every perfume in our collection is selected to give you
+            confidence and presence.
+          </p>
+          <p>
+            Whether you want something fresh and clean, soft and feminine, sweet and playful, or dark and magnetic,
+            our perfume assistant helps you find the closest match from what we currently have in stock.
+          </p>
+        </div>
+        <div class="story-stats" aria-label="Brand strengths">
+          <div>
+            <strong>Curated collection</strong>
+            <span>Only real products on the website are recommended by the assistant.</span>
+          </div>
+          <div>
+            <strong>Personal guidance</strong>
+            <span>The AI assistant matches scents to your budget and preferred smell profile.</span>
+          </div>
+          <div>
+            <strong>Fast ordering</strong>
+            <span>Once you find your perfume, order immediately through WhatsApp.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+      <div class="section-heading">
+        <p class="eyebrow">Contact</p>
+        <h2>Reach Louisa's Perfumes directly.</h2>
+      </div>
+
+      <div class="contact-layout">
+        <a class="contact-card" id="whatsapp-link" target="_blank" rel="noopener noreferrer">
+          <span>WhatsApp Orders</span>
+          <strong>09067736899</strong>
+        </a>
+        <a class="contact-card" href="tel:+2349067736899">
+          <span>Phone Number</span>
+          <strong>09067736899</strong>
+        </a>
+        <a class="contact-card" href="https://www.tiktok.com/@louisasperfumes" target="_blank" rel="noopener noreferrer">
+          <span>TikTok</span>
+          <strong>@louisasperfumes</strong>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Louisa's Perfumes. Signature scents for every mood.</p>
+  </footer>
+
+  <button
+    type="button"
+    class="chatbot-launcher"
+    id="chatbot-launcher"
+    aria-label="Open perfume assistant"
+    aria-expanded="false"
+  >
+    <span class="chatbot-launcher-icon">AI</span>
+    <span>Perfume Assistant</span>
+  </button>
+
+  <section class="chatbot-panel hidden" id="chatbot-panel" aria-label="Perfume assistant">
+    <div class="chatbot-header">
+      <div>
+        <p class="eyebrow">Louisa's Assistant</p>
+        <h3>I can recommend the perfect perfume for your lifestyle.</h3>
+      </div>
+      <button type="button" class="chatbot-close" id="chatbot-close" aria-label="Close perfume assistant">Close</button>
+    </div>
+    <div class="chat-log" id="chatbot-log" aria-live="polite" aria-label="Chat messages"></div>
+    <form id="chatbot-form" class="chat-form">
+      <input
+        id="chatbot-input"
+        name="chatbot-input"
+        type="text"
+        maxlength="240"
+        placeholder="Example: I want something under NGN 35,000 that smells sweet and feminine"
+        required
+      >
+      <button class="button button-primary" type="submit">Ask AI</button>
+    </form>
+  </section>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

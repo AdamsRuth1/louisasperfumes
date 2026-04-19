@@ -1,0 +1,9 @@
+{
+  "name": "velvet-aura-perfumes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend-powered perfume landing page with admin login and secure product storage.",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

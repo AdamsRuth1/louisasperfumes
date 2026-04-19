@@ -1,0 +1,98 @@
+[
+  {
+    "id": "6305faba-4e88-4d08-ac5b-7c77ca6a43c3",
+    "name": "Noir Ember",
+    "manufacturer": "Lattafa",
+    "ml": 100,
+    "price": 42000,
+    "notes": [
+      "amber",
+      "oud",
+      "warm spice",
+      "smoky"
+    ],
+    "description": "A deep evening scent with dark woods, amber warmth, and a magnetic finish.",
+    "image": "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=900&q=80",
+    "inStock": true
+  },
+  {
+    "id": "0755140c-61e0-4219-a843-3b27d054143c",
+    "name": "Rose Satin",
+    "manufacturer": "Maison Alhambra",
+    "ml": 100,
+    "price": 35000,
+    "notes": [
+      "rose",
+      "vanilla",
+      "musk",
+      "powdery"
+    ],
+    "description": "Soft, feminine, and elegant with velvety rose and a creamy musky dry-down.",
+    "image": "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=900&q=80",
+    "inStock": true
+  },
+  {
+    "id": "e6a16b43-d27a-4861-ba9b-4d93bfc7e476",
+    "name": "Citrus Veil",
+    "manufacturer": "Fragrance World",
+    "ml": 80,
+    "price": 28000,
+    "notes": [
+      "bergamot",
+      "fresh",
+      "green",
+      "clean"
+    ],
+    "description": "Bright citrus sparkle blended with airy greens for a crisp all-day signature.",
+    "image": "https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=900&q=80",
+    "inStock": true
+  },
+  {
+    "id": "ede218a8-8284-4a98-9e1e-faaa145ec723",
+    "name": "Velvet Sugar",
+    "manufacturer": "Armaf",
+    "ml": 100,
+    "price": 32000,
+    "notes": [
+      "caramel",
+      "vanilla",
+      "sweet",
+      "fruity"
+    ],
+    "description": "A playful gourmand trail with sugary warmth and a juicy sweet opening.",
+    "image": "https://images.unsplash.com/photo-1619994403073-2cec99c8c6d1?auto=format&fit=crop&w=900&q=80",
+    "inStock": true
+  },
+  {
+    "id": "1ef1e154-e64e-4064-b873-2e6d55d4690f",
+    "name": "Sandal Bloom",
+    "manufacturer": "Ajmal",
+    "ml": 90,
+    "price": 39000,
+    "notes": [
+      "sandalwood",
+      "floral",
+      "cream",
+      "soft"
+    ],
+    "description": "Smooth sandalwood wrapped in elegant florals for a polished, calm presence.",
+    "image": "https://images.unsplash.com/photo-1528747045269-390fe33c19d9?auto=format&fit=crop&w=900&q=80",
+    "inStock": true
+  },
+  {
+    "id": "e0594e52-d932-4cba-bc9e-42b7fda629ec",
+    "name": "Ocean Whisper",
+    "manufacturer": "Rasasi",
+    "ml": 100,
+    "price": 30000,
+    "notes": [
+      "aquatic",
+      "fresh",
+      "citrus",
+      "woody"
+    ],
+    "description": "Cool and clean with watery freshness, zesty citrus, and a refined woody base.",
+    "image": "https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=900&q=80",
+    "inStock": true
+  }
+]
