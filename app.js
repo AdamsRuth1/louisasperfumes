@@ -95,7 +95,7 @@ function bindEvents() {
     closeChatbot();
   });
 
-  elements.botForm.addEventListener("submit", (event) => {
+  elements.botForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const userMessage = sanitizeText(elements.botInput.value);
     if (!userMessage) {
@@ -103,15 +103,56 @@ function bindEvents() {
     }
 
     appendTextMessage("user", "You", userMessage);
-    const recommendation = generateRecommendation(userMessage);
-    appendRecommendationMessage(recommendation);
-    elements.botForm.reset();
-    openChatbot();
+    elements.botInput.disabled = true;
+    
+    try {
+      // Use local endpoint for development, Supabase endpoint for production
+      const endpoint = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "/api/admin/recommend"  // Local Node.js server
+        : "/api/recommend";       // Vercel serverless function
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userInput: userMessage,
+          products: state.products.filter(p => p.inStock)
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Server error:", response.status, data);
+        throw new Error(data.error || "Failed to get recommendation");
+      }
+
+      // Display the recommendation with product cards
+      appendRecommendationMessage({
+        intro: data.intro,
+        products: Array.isArray(data.products) ? data.products : []
+      });
+    } catch (error) {
+      console.error("Recommendation error:", error);
+      appendTextMessage("assistant", "Assistant", "I couldn't generate a recommendation right now. Please try again.");
+    } finally {
+      elements.botInput.disabled = false;
+      elements.botForm.reset();
+      elements.botInput.focus();
+      openChatbot();
+    }
   });
 }
 
 async function loadProducts() {
-  const response = await fetch("/api/products", {
+  // Use local endpoint for development, Supabase endpoint for production
+  const endpoint = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "/api/products"      // Local Node.js server
+    : "/api/products-db";  // Vercel serverless function
+
+  const response = await fetch(endpoint, {
     headers: {
       Accept: "application/json"
     }

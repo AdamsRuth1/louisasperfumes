@@ -1,5 +1,18 @@
 [
   {
+    "id": "7c1d13ad-0b6f-4973-b7f8-cda9cf09e324",
+    "name": "sugar",
+    "manufacturer": "lattafa",
+    "description": "very sweet",
+    "ml": 200,
+    "price": 25000,
+    "notes": [
+      "rose vanilla"
+    ],
+    "inStock": true,
+    "image": "/data/uploads/1776679789586-7d5c61b2-7c39-4917-81c4-758129522a93-IMG_8826-jpeg.jpg"
+  },
+  {
     "id": "6305faba-4e88-4d08-ac5b-7c77ca6a43c3",
     "name": "Noir Ember",
     "manufacturer": "Lattafa",

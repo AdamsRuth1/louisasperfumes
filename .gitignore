@@ -1,1 +1,3 @@
 data/uploads/
+.env.local
+node_modules/

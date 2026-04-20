@@ -1,372 +1,281 @@
 "use strict";
 
-const state = {
-  products: [],
-  adminOpen: false,
-  adminAuthenticated: false
-};
+let authSession = null;
 
 const elements = {
-  inventoryList: document.querySelector("#inventory-list"),
   adminToggle: document.querySelector("#admin-toggle"),
+  adminLogout: document.querySelector("#admin-logout"),
   adminAccess: document.querySelector("#admin-access"),
   adminLoginForm: document.querySelector("#admin-login-form"),
-  adminUsername: document.querySelector("#admin-username"),
-  adminPassword: document.querySelector("#admin-password"),
-  adminLogout: document.querySelector("#admin-logout"),
   adminPanel: document.querySelector("#admin-panel"),
   adminForm: document.querySelector("#admin-form"),
+  adminMessage: document.querySelector("#admin-message"),
   adminReset: document.querySelector("#admin-reset"),
-  adminMessage: document.querySelector("#admin-message")
+  inventoryList: document.querySelector("#inventory-list")
 };
 
-init().catch((error) => {
-  elements.adminMessage.textContent = "Could not load admin data.";
-  console.error(error);
-});
-
-async function init() {
-  bindEvents();
-  await Promise.all([loadProducts(), loadAdminSession()]);
-  renderInventory();
+// Check if user is already logged in (from localStorage)
+function checkExistingSession() {
+  const savedSession = localStorage.getItem("louisas_admin_session");
+  if (savedSession) {
+    try {
+      authSession = JSON.parse(savedSession);
+      showAdminPanel();
+      loadInventory();
+    } catch (e) {
+      localStorage.removeItem("louisas_admin_session");
+    }
+  }
 }
 
-function bindEvents() {
-  elements.adminToggle.addEventListener("click", () => {
-    if (!state.adminAuthenticated) {
-      elements.adminMessage.textContent = "Sign in as admin to open the dashboard.";
+// Show/hide login form
+elements.adminToggle.addEventListener("click", () => {
+  if (!authSession) {
+    elements.adminAccess.classList.toggle("hidden");
+  }
+});
+
+// Handle login
+elements.adminLoginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const email = document.querySelector("#admin-username").value;
+  const password = document.querySelector("#admin-password").value;
+
+  elements.adminToggle.disabled = true;
+  elements.adminToggle.textContent = "Signing in...";
+
+  try {
+    // Use local endpoint for development, Supabase endpoint for production
+    const endpoint = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "/api/admin/login"  // Local Node.js server
+      : "/api/auth";        // Vercel serverless function
+
+    const body = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? { username: email, password }  // Local expects username/password
+      : { action: "login", email, password };  // Supabase expects action/email/password
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      showMessage("Login failed: " + (data.error || "Unknown error"), "error");
       return;
     }
 
-    state.adminOpen = !state.adminOpen;
-    syncAdminUi();
-  });
-
-  elements.adminLoginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    await loginAdmin();
-  });
-
-  elements.adminLogout.addEventListener("click", async () => {
-    await logoutAdmin();
-  });
-
-  elements.adminReset.addEventListener("click", () => {
-    elements.adminForm.reset();
-    elements.adminMessage.textContent = "Form reset.";
-  });
-
-  elements.adminForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    await createProductFromForm();
-  });
-}
-
-async function loadProducts() {
-  const response = await fetch("/api/products", {
-    headers: {
-      Accept: "application/json"
+    // For local dev: just store a simple auth flag
+    // For Vercel: store the full session
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      authSession = { authenticated: true };
+    } else {
+      authSession = data.session;
     }
-  });
+    
+    localStorage.setItem("louisas_admin_session", JSON.stringify(authSession));
+    showMessage("Login successful!", "success");
 
-  if (!response.ok) {
-    throw new Error("Failed to load products");
+    setTimeout(() => {
+      elements.adminAccess.classList.add("hidden");
+      showAdminPanel();
+      loadInventory();
+    }, 500);
+  } catch (error) {
+    showMessage("Error: " + error.message, "error");
+  } finally {
+    elements.adminToggle.disabled = false;
+    elements.adminToggle.textContent = "Sign In Required";
   }
+});
 
-  const payload = await response.json();
-  state.products = Array.isArray(payload.products) ? payload.products.map(normalizeProduct) : [];
+// Show admin panel after login
+function showAdminPanel() {
+  elements.adminPanel.classList.remove("hidden");
+  elements.adminAccess.classList.add("hidden");
+  elements.adminToggle.classList.add("hidden");
+  elements.adminLogout.classList.remove("hidden");
 }
 
-async function loadAdminSession() {
-  const response = await fetch("/api/admin/session", {
-    headers: {
-      Accept: "application/json"
-    }
-  });
-
-  if (!response.ok) {
-    syncAdminUi();
-    return;
-  }
-
-  const payload = await response.json();
-  state.adminAuthenticated = payload.authenticated === true;
-  state.adminOpen = state.adminAuthenticated;
-  syncAdminUi();
-}
-
-async function loginAdmin() {
-  const username = sanitizeText(elements.adminUsername.value);
-  const password = elements.adminPassword.value;
-
-  if (!username || !password) {
-    elements.adminMessage.textContent = "Enter your admin username and password.";
-    return;
-  }
-
-  elements.adminMessage.textContent = "Signing in...";
-
-  const response = await fetch("/api/admin/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json"
-    },
-    body: JSON.stringify({ username, password })
-  });
-
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    elements.adminMessage.textContent = payload.error || "Admin login failed.";
-    return;
-  }
-
-  state.adminAuthenticated = true;
-  state.adminOpen = true;
-  syncAdminUi();
+// Handle logout
+elements.adminLogout.addEventListener("click", () => {
+  localStorage.removeItem("louisas_admin_session");
+  authSession = null;
+  elements.adminPanel.classList.add("hidden");
+  elements.adminToggle.classList.remove("hidden");
+  elements.adminLogout.classList.add("hidden");
+  elements.adminAccess.classList.remove("hidden");
   elements.adminLoginForm.reset();
-  elements.adminMessage.textContent = "Admin login successful.";
-}
+  elements.adminForm.reset();
+  elements.inventoryList.innerHTML = "";
+  showMessage("Logged out successfully", "success");
+});
 
-async function logoutAdmin() {
-  await fetch("/api/admin/logout", {
-    method: "POST",
-    headers: {
-      Accept: "application/json"
-    }
-  });
+// Handle product form submission
+elements.adminForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-  state.adminAuthenticated = false;
-  state.adminOpen = false;
-  syncAdminUi();
-  elements.adminMessage.textContent = "Admin signed out.";
-}
-
-async function createProductFromForm() {
-  if (!state.adminAuthenticated) {
-    elements.adminMessage.textContent = "Please sign in before adding perfumes.";
+  if (!authSession) {
+    showMessage("Not authenticated", "error");
     return;
   }
 
   const formData = new FormData(elements.adminForm);
-  const product = await buildProductPayload(formData);
-  if (!product) {
+  const notes = formData
+    .get("notes")
+    .split(",")
+    .map((n) => n.trim())
+    .filter((n) => n);
+
+  const imageFile = formData.get("image");
+
+  // Validate image
+  if (!imageFile || imageFile.size === 0) {
+    showMessage("Please upload a perfume image", "error");
     return;
   }
 
-  elements.adminMessage.textContent = "Saving perfume...";
+  if (!imageFile.type.startsWith("image/")) {
+    showMessage("File must be an image (JPG, PNG, or WebP)", "error");
+    return;
+  }
 
-  const response = await fetch("/api/admin/products", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json"
-    },
-    body: JSON.stringify(product)
-  });
+  if (imageFile.size > 3 * 1024 * 1024) {
+    showMessage("Image must be 3MB or less", "error");
+    return;
+  }
 
-  const payload = await response.json().catch(() => ({}));
+  // Convert image to base64
+  try {
+    const imageData = await readFileAsBase64(imageFile);
 
-  if (!response.ok) {
-    elements.adminMessage.textContent = payload.error || "Could not save perfume.";
-    if (response.status === 401) {
-      state.adminAuthenticated = false;
-      state.adminOpen = false;
-      syncAdminUi();
+    const product = {
+      name: formData.get("name"),
+      manufacturer: formData.get("manufacturer"),
+      ml: parseInt(formData.get("ml")),
+      price: parseInt(formData.get("price")),
+      description: formData.get("description"),
+      notes,
+      inStock: formData.get("inStock") === "on",
+      imageName: imageFile.name,
+      imageType: imageFile.type,
+      imageData: imageData
+    };
+
+    const submitBtn = elements.adminForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Uploading...";
+
+    // Use local endpoint for development, Supabase endpoint for production
+    const endpoint = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "/api/admin/products"  // Local Node.js server
+      : "/api/admin-products"; // Vercel serverless function
+
+    const headers = {
+      "Content-Type": "application/json"
+    };
+
+    // Only add Authorization header for Supabase (deployed)
+    if (!(window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+      headers["Authorization"] = `Bearer ${authSession.access_token}`;
     }
-    return;
-  }
 
-  state.products = Array.isArray(payload.products) ? payload.products.map(normalizeProduct) : state.products;
-  renderInventory();
-  elements.adminForm.reset();
-  elements.adminMessage.textContent = `${payload.product?.name || "Perfume"} added successfully.`;
-}
-
-async function toggleProductStock(productId) {
-  if (!state.adminAuthenticated) {
-    elements.adminMessage.textContent = "Please sign in before editing stock.";
-    return;
-  }
-
-  const response = await fetch(`/api/admin/products/${encodeURIComponent(productId)}/stock`, {
-    method: "PATCH",
-    headers: {
-      Accept: "application/json"
-    }
-  });
-
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    elements.adminMessage.textContent = payload.error || "Could not update stock status.";
-    return;
-  }
-
-  state.products = Array.isArray(payload.products) ? payload.products.map(normalizeProduct) : state.products;
-  renderInventory();
-  elements.adminMessage.textContent = "Stock status updated.";
-}
-
-async function buildProductPayload(formData) {
-  const name = sanitizeText(formData.get("name"));
-  const manufacturer = sanitizeText(formData.get("manufacturer"));
-  const notesInput = sanitizeText(formData.get("notes"));
-  const description = sanitizeText(formData.get("description"));
-  const ml = Number.parseInt(formData.get("ml"), 10);
-  const price = Number.parseInt(formData.get("price"), 10);
-  const inStock = formData.get("inStock") === "on";
-  const file = formData.get("image");
-
-  if (!name || !manufacturer || !description || !notesInput) {
-    elements.adminMessage.textContent = "Please fill all required fields correctly.";
-    return null;
-  }
-
-  if (!Number.isFinite(ml) || ml <= 0 || !Number.isFinite(price) || price <= 0) {
-    elements.adminMessage.textContent = "ML and price must be valid positive numbers.";
-    return null;
-  }
-
-  if (!(file instanceof File) || file.size === 0) {
-    elements.adminMessage.textContent = "Please upload a perfume image.";
-    return null;
-  }
-
-  if (!file.type.startsWith("image/")) {
-    elements.adminMessage.textContent = "Uploaded file must be an image.";
-    return null;
-  }
-
-  if (file.size > 3 * 1024 * 1024) {
-    elements.adminMessage.textContent = "Image must be 3MB or less.";
-    return null;
-  }
-
-  const imageData = await readFileAsDataUrl(file);
-
-  return {
-    name,
-    manufacturer,
-    ml,
-    price,
-    description,
-    inStock,
-    notes: notesInput.split(",").map((note) => sanitizeText(note)).filter(Boolean),
-    imageName: sanitizeText(file.name) || "perfume-image",
-    imageType: file.type,
-    imageData
-  };
-}
-
-function renderInventory() {
-  elements.inventoryList.replaceChildren();
-
-  if (state.products.length === 0) {
-    const message = document.createElement("p");
-    message.className = "search-hint";
-    message.textContent = "No perfumes in inventory yet.";
-    elements.inventoryList.append(message);
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-
-  state.products.forEach((product) => {
-    const item = document.createElement("article");
-    item.className = "inventory-item";
-
-    const left = document.createElement("div");
-    left.className = "inventory-meta";
-
-    const title = document.createElement("h4");
-    title.textContent = product.name;
-    const details = document.createElement("p");
-    details.textContent = `${product.manufacturer} - ${product.ml}ML - ${formatPrice(product.price)}`;
-    const stock = document.createElement("p");
-    stock.textContent = product.inStock ? "Available" : "Out of stock";
-
-    left.append(title, details, stock);
-
-    const actions = document.createElement("div");
-    actions.className = "inventory-actions";
-
-    const stockButton = document.createElement("button");
-    stockButton.type = "button";
-    stockButton.className = "button button-secondary";
-    stockButton.textContent = product.inStock ? "Mark Out of Stock" : "Mark In Stock";
-    stockButton.disabled = !state.adminAuthenticated;
-    stockButton.addEventListener("click", () => {
-      void toggleProductStock(product.id);
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(product)
     });
 
-    actions.append(stockButton);
-    item.append(left, actions);
-    fragment.append(item);
-  });
+    const data = await response.json();
 
-  elements.inventoryList.append(fragment);
-}
+    if (!response.ok) {
+      showMessage("Upload failed: " + (data.error || "Unknown error"), "error");
+      return;
+    }
 
-function syncAdminUi() {
-  elements.adminAccess.classList.toggle("hidden", state.adminAuthenticated);
-  elements.adminPanel.classList.toggle("hidden", !state.adminAuthenticated || !state.adminOpen);
-  elements.adminLogout.classList.toggle("hidden", !state.adminAuthenticated);
-  elements.adminToggle.textContent = state.adminAuthenticated
-    ? (state.adminOpen ? "Hide Dashboard" : "Open Dashboard")
-    : "Sign In Required";
-  elements.adminToggle.setAttribute("aria-expanded", String(state.adminAuthenticated && state.adminOpen));
-}
-
-function normalizeProduct(product) {
-  return {
-    id: sanitizeText(product.id),
-    name: sanitizeText(product.name),
-    manufacturer: sanitizeText(product.manufacturer),
-    ml: Number.parseInt(product.ml, 10) || 50,
-    price: Number.parseInt(product.price, 10) || 0,
-    notes: Array.isArray(product.notes) ? product.notes.map((note) => sanitizeText(note)).filter(Boolean) : [],
-    description: sanitizeText(product.description),
-    image: sanitizeUrl(product.image) || "",
-    inStock: Boolean(product.inStock)
-  };
-}
-
-function formatPrice(amount) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0
-  }).format(amount);
-}
-
-function sanitizeText(value) {
-  if (typeof value !== "string") {
-    return "";
+    showMessage("Product uploaded successfully!", "success");
+    elements.adminForm.reset();
+    loadInventory();
+  } catch (error) {
+    showMessage("Error: " + error.message, "error");
+  } finally {
+    const submitBtn = elements.adminForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Save Perfume";
   }
+});
 
-  return value.replace(/[<>]/g, "").trim();
-}
+// Reset form
+elements.adminReset.addEventListener("click", () => {
+  elements.adminForm.reset();
+});
 
-function sanitizeUrl(value) {
-  if (typeof value !== "string") {
-    return "";
-  }
-
+// Load and display inventory
+async function loadInventory() {
   try {
-    const url = new URL(value.trim(), window.location.origin);
-    return ["https:", "http:"].includes(url.protocol) ? url.toString() : "";
-  } catch {
-    return "";
+    // Use local endpoint for development, Supabase endpoint for production
+    const endpoint = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "/api/products"      // Local Node.js server
+      : "/api/products-db";  // Vercel serverless function
+
+    const response = await fetch(endpoint);
+    const data = await response.json();
+    const products = data.products || [];
+
+    if (products.length === 0) {
+      elements.inventoryList.innerHTML = "<p style='color: #666;'>No products uploaded yet.</p>";
+      return;
+    }
+
+    elements.inventoryList.innerHTML = products
+      .map(
+        (product) => `
+      <article style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; margin-bottom: 10px;">
+        <h4 style="margin: 0 0 5px 0;">${product.name}</h4>
+        <p style="margin: 5px 0; font-size: 12px; color: #666;">
+          ${product.manufacturer} • ${product.ml}ml • ₦${product.price.toLocaleString()}
+        </p>
+        <p style="margin: 5px 0; font-size: 12px;">
+          ${product.in_stock ? '✓ <span style="color: green;">In Stock</span>' : '✗ <span style="color: red;">Out of Stock</span>'}
+        </p>
+      </article>
+    `
+      )
+      .join("");
+  } catch (error) {
+    console.error("Error loading inventory:", error);
+    elements.inventoryList.innerHTML = "<p style='color: red;'>Error loading products.</p>";
   }
 }
 
-function readFileAsDataUrl(file) {
+// Helper to show messages
+function showMessage(message, type = "info") {
+  if (elements.adminMessage) {
+    elements.adminMessage.textContent = message;
+    elements.adminMessage.className = `admin-message ${type}`;
+    elements.adminMessage.style.display = "block";
+    
+    if (type === "success") {
+      setTimeout(() => {
+        elements.adminMessage.style.display = "none";
+      }, 3000);
+    }
+  }
+}
+
+// Initialize
+checkExistingSession();
+
+// Helper function to read file as base64
+function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-    reader.onerror = () => reject(new Error("Could not read image file"));
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Failed to read file"));
     reader.readAsDataURL(file);
   });
 }
+
+checkExistingSession();

@@ -1,9 +1,12 @@
 {
-  "name": "velvet-aura-perfumes",
+  "name": "louisasperfumes",
   "version": "1.0.0",
   "private": true,
-  "description": "Backend-powered perfume landing page with admin login and secure product storage.",
+  "description": "Louisa's Perfumes - Luxury fragrance ecommerce with admin panel and AI recommendations",
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0"
   }
 }

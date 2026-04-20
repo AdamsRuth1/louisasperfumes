@@ -1,0 +1,8 @@
+{
+  "buildCommand": "echo 'Static site - no build needed'",
+  "outputDirectory": ".",
+  "installCommand": "echo 'No dependencies to install'",
+  "env": {
+    "GEMINI_API_KEY": "@gemini_api_key"
+  }
+}

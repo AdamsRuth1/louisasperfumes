@@ -165,6 +165,52 @@ const server = http.createServer(async (request, response) => {
       return sendJson(response, 200, { product, products });
     }
 
+    if (request.method === "POST" && requestUrl.pathname === "/api/admin/recommend") {
+      const body = await readJsonBody(request);
+      const { userInput, products } = body;
+
+      if (!userInput || !Array.isArray(products)) {
+        return sendJson(response, 400, { error: "Missing userInput or products" });
+      }
+
+      // If no products available, return helpful message
+      if (products.length === 0) {
+        return sendJson(response, 200, {
+          intro: "No products are currently in stock. Please check back soon!",
+          products: []
+        });
+      }
+
+      // Simple local recommendation (no AI, just keyword matching)
+      const keywords = ["fresh", "sweet", "woody", "floral", "clean", "vanilla", "rose", "oud", "citrus", "musky", "powdery", "fruity"];
+      const userKeywords = keywords.filter(k => userInput.toLowerCase().includes(k));
+      
+      let recommendations = products;
+      if (userKeywords.length > 0) {
+        recommendations = products.filter(p => 
+          userKeywords.some(k => 
+            (p.notes && Array.isArray(p.notes) && p.notes.join(" ").toLowerCase().includes(k)) ||
+            (p.name && p.name.toLowerCase().includes(k)) ||
+            (p.description && p.description.toLowerCase().includes(k))
+          )
+        );
+      }
+
+      if (recommendations.length === 0) {
+        return sendJson(response, 200, {
+          intro: "I couldn't find a perfect match in the current collection. Try describing your vibe with words like fresh, sweet, floral, soft, woody, vanilla, citrus, or oud.",
+          products: []
+        });
+      }
+
+      const picks = recommendations.slice(0, 3);
+      
+      return sendJson(response, 200, {
+        intro: "Based on your preference, here are my recommendations:",
+        products: picks
+      });
+    }
+
     return serveStatic(requestUrl.pathname, response);
   } catch (error) {
     console.error(error);
