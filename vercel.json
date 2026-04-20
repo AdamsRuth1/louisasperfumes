@@ -2,6 +2,12 @@
   "buildCommand": "echo 'Static site - no build needed'",
   "outputDirectory": ".",
   "installCommand": "echo 'No dependencies to install'",
+  "rewrites": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/logo.jpeg"
+    }
+  ],
   "env": {
     "GEMINI_API_KEY": "@gemini_api_key"
   }
