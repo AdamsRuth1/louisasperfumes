@@ -27,8 +27,13 @@ export default async function handler(req, res) {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Supabase error:", error);
-        return res.status(500).json({ error: "Failed to fetch products" });
+        console.error("Supabase error details:", JSON.stringify(error, null, 2));
+        console.error("Environment check - URL exists:", !!supabaseUrl);
+        console.error("Environment check - Key exists:", !!supabaseKey);
+        return res.status(500).json({ 
+          error: "Failed to fetch products",
+          details: error.message || error
+        });
       }
 
       return res.status(200).json({ products: data || [] });
