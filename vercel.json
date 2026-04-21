@@ -2,10 +2,19 @@
   "buildCommand": "echo 'Static site - no build needed'",
   "outputDirectory": ".",
   "installCommand": "echo 'No dependencies to install'",
+  "public": true,
   "rewrites": [
     {
       "source": "/favicon.ico",
       "destination": "/logo.jpeg"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
